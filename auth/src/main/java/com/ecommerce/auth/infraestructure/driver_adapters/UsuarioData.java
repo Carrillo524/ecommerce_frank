@@ -14,7 +14,6 @@ import lombok.NoArgsConstructor;
 public class UsuarioData {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private String idUsuario;
     private String nombre;
     @Column(length = 30, nullable = false)

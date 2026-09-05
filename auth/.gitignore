@@ -31,3 +31,10 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Databases & Runtime Files ###
+*.db
+*.mv.db
+*.trace.db
+**/data/
+*.log
