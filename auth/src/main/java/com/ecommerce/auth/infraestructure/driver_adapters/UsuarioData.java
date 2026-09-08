@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 public class UsuarioData {
 
     @Id
+    //@GeneratedValue(strategy = GenerationType.AUTO)
     private String idUsuario;
     private String nombre;
     @Column(length = 30, nullable = false)
