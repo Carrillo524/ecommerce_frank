@@ -8,4 +8,5 @@ public interface UsuarioGateway {
     Usuario buscarPorId(String idUsuario);
     Usuario actualizarUsuario(Usuario usuario);
     void eliminarPorId(String idUsuario);
+    Usuario buscarPorEmail(String email);
 }

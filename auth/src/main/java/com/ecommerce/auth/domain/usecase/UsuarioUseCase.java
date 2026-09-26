@@ -1,6 +1,7 @@
 package com.ecommerce.auth.domain.usecase;
 
 import com.ecommerce.auth.domain.model.Usuario;
+import com.ecommerce.auth.domain.model.gateway.EncryptGateway;
 import com.ecommerce.auth.domain.model.gateway.UsuarioGateway;
 import lombok.RequiredArgsConstructor;
 
@@ -11,6 +12,7 @@ import java.util.stream.Stream;
 public class UsuarioUseCase {
 
     private final UsuarioGateway usuarioGateway;
+    private final EncryptGateway encryptGateway;
 
     public Usuario guardarUsuario(Usuario usuario) {
         validarUsuario(usuario);
@@ -51,7 +53,6 @@ public class UsuarioUseCase {
 
     private void validarUsuario(Usuario usuario) {
         if (usuario == null || Stream.of(
-                usuario.getIdUsuario(),
                 usuario.getNombre(),
                 usuario.getEmail(),
                 usuario.getPass(),
@@ -61,6 +62,16 @@ public class UsuarioUseCase {
         ).anyMatch(Objects::isNull)) {
             throw new NullPointerException("Uy zonas, alguno de los datos son nulos");
         }
+    }
+
+    public String loginUsuario(String email, String password) {
+        Usuario usuarioLogin = usuarioGateway.buscarPorEmail(email);
+
+        if (usuarioLogin.getEmail() == null || !encryptGateway.checkPass(password)) {
+            throw new SecurityException("Credenciales inválidas o el Email no está registrado");
+        }
+
+        return "Login exitosamente";
     }
 
 }

@@ -6,6 +6,7 @@ import com.ecommerce.auth.infraestructure.mapper.UsuarioMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+//IMPLEMEMTAR USUARIO GATEWAY
 @Repository
 @RequiredArgsConstructor
 public class JpaUsuarioAdapter implements UsuarioGateway {
@@ -31,5 +32,11 @@ public class JpaUsuarioAdapter implements UsuarioGateway {
     @Override
     public void eliminarPorId(String idUsuario) {
         repository.deleteById(idUsuario);
+    }
+
+    @Override
+    public Usuario buscarPorEmail(String email) {
+        return repository.findByEmail(email).map(mapper::toUsuario)
+                .orElseThrow(() -> new RuntimeException("Fallo consulta de base de datos"));
     }
 }
