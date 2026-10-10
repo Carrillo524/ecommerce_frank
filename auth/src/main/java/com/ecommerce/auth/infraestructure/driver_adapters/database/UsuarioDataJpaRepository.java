@@ -1,4 +1,4 @@
-package com.ecommerce.auth.infraestructure.driver_adapters;
+package com.ecommerce.auth.infraestructure.driver_adapters.database;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

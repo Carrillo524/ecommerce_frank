@@ -5,6 +5,7 @@ import com.ecommerce.auth.domain.model.gateway.EncryptGateway;
 import com.ecommerce.auth.domain.model.gateway.UsuarioGateway;
 import lombok.RequiredArgsConstructor;
 
+import javax.swing.text.StyledEditorKit;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -16,29 +17,43 @@ public class UsuarioUseCase {
 
     public Usuario guardarUsuario(Usuario usuario) {
         validarUsuario(usuario);
+
+        if (usuarioGateway.buscarPorEmail(usuario.getEmail()) != null) {
+            return null;
+        }
+
+        String passCrypt = encryptGateway.encrypt(usuario.getPass());
+        usuario.setPass(passCrypt);
+
         return usuarioGateway.guardarUsuario(usuario);
     }
 
     public Usuario obtenerUsuarioPorId(String idUsuario) {
         if (idUsuario == null || idUsuario.isBlank()) {
-            throw new IllegalArgumentException("El ID del usuario no puede ser nulo o vacío");
+            return null;
         }
-        Usuario usuario = usuarioGateway.buscarPorId(idUsuario);
-        if (usuario == null) {
-            throw new RuntimeException("Usuario no encontrado con ID: " + idUsuario);
-        }
-        return usuario;
+        return usuarioGateway.buscarPorId(idUsuario);
     }
 
-    public Usuario actualizarUsuario(String idUsuario, Usuario usuario) {
-        if (idUsuario == null || !idUsuario.equals(usuario.getIdUsuario())) {
-            throw new IllegalArgumentException("El ID del usuario no coincide");
+    public Usuario actualizarUsuario(Usuario usuario) {
+
+        if (usuario == null || usuario.getIdUsuario() == null || usuario.getIdUsuario().isBlank()) {
+            return null;
         }
+
         validarUsuario(usuario);
-        
+
         // Verificamos existencia antes de actualizar
-        obtenerUsuarioPorId(idUsuario);
-        
+        Usuario usuarioExistente = obtenerUsuarioPorId(usuario.getIdUsuario());
+        if (usuarioExistente == null) {
+            return null;
+        }
+
+        Usuario usuarioConMismoEmail = usuarioGateway.buscarPorEmail(usuario.getEmail());
+        if (usuarioConMismoEmail != null && !usuarioConMismoEmail.getIdUsuario().equals(usuario.getIdUsuario())) {
+            return null;
+        }
+
         return usuarioGateway.actualizarUsuario(usuario);
     }
 
@@ -60,19 +75,24 @@ public class UsuarioUseCase {
                 usuario.getEdad(),
                 usuario.getNumeroTelefono()
         ).anyMatch(Objects::isNull)) {
-            throw new NullPointerException("Uy zonas, alguno de los datos son nulos");
+            throw new IllegalArgumentException("Uy zonas, alguno de los datos son nulos");
+        }
+
+        if (usuario.getEdad() < 18) {
+            throw new IllegalArgumentException("El usuario debe tener 18 años o más");
         }
     }
 
     public String loginUsuario(String email, String password) {
         Usuario usuarioLogin = usuarioGateway.buscarPorEmail(email);
 
-        if (usuarioLogin.getEmail() == null || !encryptGateway.checkPass(password)) {
-            throw new SecurityException("Credenciales inválidas o el Email no está registrado");
+        // Verificar que el email exista y que la clave coincida
+        if (usuarioLogin != null && Boolean.TRUE.equals(encryptGateway.checkPass(password, usuarioLogin.getPass()))) {
+            return "Login exitoso";
         }
 
-        return "Login exitosamente";
+        // Si no existe o la contraseña está mal, retorna siempre lo mismo con 200 OK
+        return "credenciales invalidas";
+
     }
-
 }
-

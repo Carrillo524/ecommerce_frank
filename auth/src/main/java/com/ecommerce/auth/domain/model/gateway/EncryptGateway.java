@@ -4,5 +4,5 @@ public interface EncryptGateway {
 
     String encrypt(String password);
 
-    Boolean checkPass(String passUser);
+    Boolean checkPass(String passUser, String passwordBD);
 }

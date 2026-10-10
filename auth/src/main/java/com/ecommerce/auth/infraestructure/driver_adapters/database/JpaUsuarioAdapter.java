@@ -1,4 +1,4 @@
-package com.ecommerce.auth.infraestructure.driver_adapters;
+package com.ecommerce.auth.infraestructure.driver_adapters.database;
 
 import com.ecommerce.auth.domain.model.Usuario;
 import com.ecommerce.auth.domain.model.gateway.UsuarioGateway;
@@ -36,7 +36,6 @@ public class JpaUsuarioAdapter implements UsuarioGateway {
 
     @Override
     public Usuario buscarPorEmail(String email) {
-        return repository.findByEmail(email).map(mapper::toUsuario)
-                .orElseThrow(() -> new RuntimeException("Fallo consulta de base de datos"));
+        return repository.findByEmail(email).map(mapper::toUsuario).orElse(null);
     }
 }

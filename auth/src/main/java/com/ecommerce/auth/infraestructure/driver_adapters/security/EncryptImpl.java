@@ -1,4 +1,4 @@
-package com.ecommerce.auth.infraestructure.security;
+package com.ecommerce.auth.infraestructure.driver_adapters.security;
 
 import com.ecommerce.auth.domain.model.gateway.EncryptGateway;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -15,7 +15,7 @@ public class EncryptImpl implements EncryptGateway {
     }
 
     @Override
-    public Boolean checkPass(String passUser) {
-        return encoder.matches(passUser,  encrypt(passUser));
+    public Boolean checkPass(String passUser, String passwordBD) {
+        return encoder.matches(passUser,passwordBD);
     }
 }

@@ -1,4 +1,4 @@
-package com.ecommerce.auth.infraestructure.driver_adapters;
+package com.ecommerce.auth.infraestructure.driver_adapters.database;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -19,7 +19,7 @@ public class UsuarioData {
     private String nombre;
     @Column(length = 30, nullable = false)
     private String email;
-    @Column(length = 12, nullable = false, unique = true)
+    @Column(length = 60, nullable = false, unique = true)
     private String pass;
     private String role;
     private Integer edad;

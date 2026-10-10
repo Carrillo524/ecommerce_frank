@@ -1,7 +1,7 @@
 package com.ecommerce.auth.infraestructure.mapper;
 
 import com.ecommerce.auth.domain.model.Usuario;
-import com.ecommerce.auth.infraestructure.driver_adapters.UsuarioData;
+import com.ecommerce.auth.infraestructure.driver_adapters.database.UsuarioData;
 import org.springframework.stereotype.Component;
 
 @Component

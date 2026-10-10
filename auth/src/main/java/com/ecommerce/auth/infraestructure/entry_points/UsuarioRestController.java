@@ -2,7 +2,8 @@ package com.ecommerce.auth.infraestructure.entry_points;
 
 import com.ecommerce.auth.domain.model.Usuario;
 import com.ecommerce.auth.domain.usecase.UsuarioUseCase;
-import com.ecommerce.auth.infraestructure.driver_adapters.UsuarioData;
+import com.ecommerce.auth.infraestructure.driver_adapters.security.RequestLogin;
+import com.ecommerce.auth.infraestructure.driver_adapters.database.UsuarioData;
 import com.ecommerce.auth.infraestructure.mapper.UsuarioMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,7 +22,11 @@ public class UsuarioRestController {
 
     @PostMapping("/save")
     public ResponseEntity<Usuario> guardarUsuario(@RequestBody UsuarioData usuarioData) {
-        return new ResponseEntity<>(usuarioUseCase.guardarUsuario(usuarioMapper.toUsuario(usuarioData)), HttpStatus.CREATED);
+        Usuario usuario = usuarioUseCase.guardarUsuario(usuarioMapper.toUsuario(usuarioData));
+        if (usuario == null) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+        return new ResponseEntity<>(usuario, HttpStatus.CREATED);
     }
 
     @GetMapping("/trae/{id}")
@@ -35,9 +40,13 @@ public class UsuarioRestController {
         return ResponseEntity.ok(usuario);
     }
 
-    @PutMapping("/mod/{id}")
-    public ResponseEntity<Usuario> actualizarUsuario(@PathVariable String id, @RequestBody Usuario usuario) {
-        return ResponseEntity.ok(usuarioUseCase.actualizarUsuario(id, usuario));
+    @PutMapping("/mod/")
+    public ResponseEntity<Usuario> actualizarUsuario(@RequestBody Usuario usuario) {
+        Usuario actualizado = usuarioUseCase.actualizarUsuario(usuario);
+        if (actualizado == null) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+        return ResponseEntity.ok(actualizado);
     }
 
     @DeleteMapping("/supr/{id}")
@@ -50,12 +59,12 @@ public class UsuarioRestController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> loginUsuario(@RequestBody UsuarioData usuarioData) {
+    public ResponseEntity<String> loginUsuario(@RequestBody RequestLogin requestLogin) {
         try {
-            String mensajeRespuesta = usuarioUseCase.loginUsuario(usuarioData.getEmail(), usuarioData.getPass());
-            return new ResponseEntity<>(mensajeRespuesta, HttpStatus.OK);
-        } catch (Exception error) {
-            return new ResponseEntity<>("Falló el logueo", HttpStatus.CONFLICT);
+            String respuesta = usuarioUseCase.loginUsuario(requestLogin.getEmail(), requestLogin.getPass());
+            return ResponseEntity.ok(respuesta);
+        } catch (SecurityException error) {
+            return ResponseEntity.status(HttpStatus.OK).body(error.getMessage());
         }
     }
 }
