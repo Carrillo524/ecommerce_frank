@@ -24,4 +24,6 @@ public class UsuarioData {
     private String role;
     private Integer edad;
     private String numeroTelefono;
+    @Column(nullable = false)
+    private Long saldo;
 }

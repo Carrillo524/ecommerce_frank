@@ -4,6 +4,7 @@ import com.ecommerce.auth.domain.model.Usuario;
 import com.ecommerce.auth.domain.usecase.UsuarioUseCase;
 import com.ecommerce.auth.infraestructure.driver_adapters.security.RequestLogin;
 import com.ecommerce.auth.infraestructure.driver_adapters.database.UsuarioData;
+import com.ecommerce.auth.infraestructure.entry_points.Dto.RequestSaldo;
 import com.ecommerce.auth.infraestructure.mapper.UsuarioMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -65,6 +66,16 @@ public class UsuarioRestController {
             return ResponseEntity.ok(respuesta);
         } catch (SecurityException error) {
             return ResponseEntity.status(HttpStatus.OK).body(error.getMessage());
+        }
+    }
+
+    @PatchMapping("/debitar")
+    public ResponseEntity<String> debitarSaldo(@RequestBody RequestSaldo requestSaldo) {
+        try {
+            usuarioUseCase.debitarSaldo(requestSaldo.getIdUsuario(), requestSaldo.getMonto());
+            return ResponseEntity.ok("Saldo debitado exitosamente");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 }

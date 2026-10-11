@@ -54,6 +54,11 @@ public class UsuarioUseCase {
             return null;
         }
 
+        // Si la clave que viene es distinta a la que ya tiene en BD, la encriptamos
+        if (!usuario.getPass().equals(usuarioExistente.getPass())) {
+            usuario.setPass(encryptGateway.encrypt(usuario.getPass()));
+        }
+
         return usuarioGateway.actualizarUsuario(usuario);
     }
 
@@ -73,13 +78,18 @@ public class UsuarioUseCase {
                 usuario.getPass(),
                 usuario.getRole(),
                 usuario.getEdad(),
-                usuario.getNumeroTelefono()
+                usuario.getNumeroTelefono(),
+                usuario.getSaldo()
         ).anyMatch(Objects::isNull)) {
             throw new IllegalArgumentException("Uy zonas, alguno de los datos son nulos");
         }
 
         if (usuario.getEdad() < 18) {
             throw new IllegalArgumentException("El usuario debe tener 18 años o más");
+        }
+
+        if (usuario.getSaldo() < 0) {
+            throw new IllegalArgumentException("El saldo no puede ser negativo");
         }
     }
 
@@ -94,5 +104,23 @@ public class UsuarioUseCase {
         // Si no existe o la contraseña está mal, retorna siempre lo mismo con 200 OK
         return "credenciales invalidas";
 
+    }
+
+    public void debitarSaldo(String idUsuario, Long monto) {
+        if (monto == null || monto <= 0) {
+            throw new IllegalArgumentException("El monto a debitar debe ser mayor a 0");
+        }
+
+        Usuario usuario = obtenerUsuarioPorId(idUsuario);
+        if (usuario == null) {
+            throw new IllegalArgumentException("Usuario no encontrado con ID: " + idUsuario);
+        }
+
+        if (usuario.getSaldo() < monto) {
+            throw new IllegalStateException("Fondos insuficientes: el saldo actual (" + usuario.getSaldo() + ") es menor al monto a debitar (" + monto + ")");
+        }
+
+        usuario.setSaldo(usuario.getSaldo() - monto);
+        actualizarUsuario(usuario);
     }
 }

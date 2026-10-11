@@ -20,6 +20,5 @@ public class Usuario {
     private String role;
     private Integer edad;
     private String numeroTelefono;
-
-
+    private Long Saldo;
 }
