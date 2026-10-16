@@ -8,7 +8,10 @@ import org.springframework.stereotype.Component;
 public class UsuarioMapper {
 
     public Usuario toUsuario(UsuarioData usuarioData) {
-        return  new Usuario(
+        if (usuarioData == null) {
+            return null;
+        }
+        return new Usuario(
                 usuarioData.getIdUsuario(),
                 usuarioData.getNombre(),
                 usuarioData.getEmail(),
@@ -21,7 +24,10 @@ public class UsuarioMapper {
     }
 
     public UsuarioData toUsuarioData(Usuario usuario) {
-        return  new UsuarioData(
+        if (usuario == null) {
+            return null;
+        }
+        return new UsuarioData(
                 usuario.getIdUsuario(),
                 usuario.getNombre(),
                 usuario.getEmail(),

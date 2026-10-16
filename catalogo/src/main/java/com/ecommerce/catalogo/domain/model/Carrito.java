@@ -18,5 +18,5 @@ public class Carrito {
     private String id;
     private String usuarioId;
     private List<ProductoCarrito> items;
-    private Long total;
+    private BigDecimal total;
 }

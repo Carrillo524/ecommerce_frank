@@ -1,8 +1,11 @@
 package com.ecommerce.auth.infraestructure.entry_points.Dto;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.math.BigDecimal;
 
 @Getter
 @Setter
@@ -10,5 +13,5 @@ import lombok.Setter;
 @AllArgsConstructor
 public class RequestSaldo {
     private String idUsuario;
-    private Long monto;
+    private BigDecimal monto;
 }

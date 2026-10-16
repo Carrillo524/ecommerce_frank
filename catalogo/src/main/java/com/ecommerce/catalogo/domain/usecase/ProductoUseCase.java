@@ -4,6 +4,7 @@ import com.ecommerce.catalogo.domain.model.Producto;
 import com.ecommerce.catalogo.domain.model.gateway.ProductoGateway;
 import lombok.RequiredArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -46,11 +47,11 @@ public class ProductoUseCase {
         if (producto.getNombre() == null || producto.getNombre().isBlank()) {
             throw new IllegalArgumentException("El nombre del producto es obligatorio");
         }
-        if (producto.getPrecio() == null || producto.getPrecio() <= 0) {
+        if (producto.getPrecio() == null || producto.getPrecio().compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("El precio debe ser mayor a 0");
         }
-        if (producto.getStock() < 0) {
-            throw new IllegalArgumentException("El stock no puede ser negativo");
+        if (producto.getStock() == null || producto.getStock() <= 0) {
+            throw new IllegalArgumentException("El stock no puede ser cero, negativo o nulo");
         }
     }
 }

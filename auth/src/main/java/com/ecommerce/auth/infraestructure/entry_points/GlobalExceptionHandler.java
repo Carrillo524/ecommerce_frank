@@ -14,12 +14,20 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalArgumentException(IllegalArgumentException ex) {
+        String message = ex.getMessage() != null ? ex.getMessage().toLowerCase() : "";
+        HttpStatus status;
+        if (message.contains("no encontrado") || message.contains("no existe")) {
+            status = HttpStatus.NOT_FOUND;
+        } else {
+            status = HttpStatus.BAD_REQUEST;
+        }
+
         Map<String, Object> errorDetails = new LinkedHashMap<>();
         errorDetails.put("timestamp", LocalDateTime.now());
-        errorDetails.put("status", HttpStatus.BAD_REQUEST.value());
-        errorDetails.put("error", HttpStatus.BAD_REQUEST.getReasonPhrase());
+        errorDetails.put("status", status.value());
+        errorDetails.put("error", status.getReasonPhrase());
         errorDetails.put("message", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorDetails);
+        return ResponseEntity.status(status).body(errorDetails);
     }
 
     @ExceptionHandler(RuntimeException.class)

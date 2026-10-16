@@ -78,4 +78,24 @@ public class UsuarioRestController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @PatchMapping("/recargar")
+    public ResponseEntity<String> recargarSaldo(@RequestBody RequestSaldo requestSaldo) {
+        try {
+            usuarioUseCase.recargarSaldo(requestSaldo.getIdUsuario(), requestSaldo.getMonto());
+            return ResponseEntity.ok("Saldo recargado exitosamente");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PatchMapping("/actualizarSaldo")
+    public ResponseEntity<Usuario> actualizarSaldo(@RequestBody RequestSaldo requestSaldo) {
+        if (requestSaldo == null) {
+            throw new IllegalArgumentException("El cuerpo de la solicitud no puede ser nulo");
+        }
+        String idUsuario = requestSaldo.getIdUsuario();
+        Usuario actualizado = usuarioUseCase.actualizarSaldo(idUsuario, requestSaldo.getMonto());
+        return ResponseEntity.ok(actualizado);
+    }
 }

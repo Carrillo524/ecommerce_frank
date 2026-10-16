@@ -5,12 +5,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Entity
 @Table(name = "usuarios")
-
 public class UsuarioData {
 
     @Id
@@ -25,5 +26,5 @@ public class UsuarioData {
     private Integer edad;
     private String numeroTelefono;
     @Column(nullable = false)
-    private Long saldo;
+    private BigDecimal saldo;
 }

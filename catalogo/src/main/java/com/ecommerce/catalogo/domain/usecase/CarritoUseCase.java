@@ -8,6 +8,7 @@ import com.ecommerce.catalogo.domain.model.gateway.ProductoGateway;
 import com.ecommerce.catalogo.domain.model.gateway.UsuarioAuthGateway;
 import lombok.RequiredArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -19,16 +20,30 @@ public class CarritoUseCase {
     private final UsuarioAuthGateway usuarioAuthGateway;
 
     public Carrito obtenerCarritoPorUsuario(String idUsuario) {
+        if (idUsuario == null || idUsuario.trim().isEmpty()) {
+            throw new IllegalArgumentException("El ID del usuario es requerido");
+        }
+
+        if (!usuarioAuthGateway.existeUsuario(idUsuario)) {
+            throw new IllegalArgumentException("El usuario no existe en el sistema");
+        }
+
         Carrito carrito = carritoGateway.buscarPorIdUsuario(idUsuario);
         if (carrito == null) {
-            carrito = new Carrito(UUID.randomUUID().toString(), idUsuario, new ArrayList<>(), 0L);
+            carrito = new Carrito(UUID.randomUUID().toString(), idUsuario, new ArrayList<>(), BigDecimal.ZERO);
             carrito = carritoGateway.guardarCarrito(carrito);
         }
         return carrito;
     }
 
-    public Carrito agregarProducto(String idUsuario, String productoId, int cantidad) {
-        if (cantidad <= 0) {
+    public Carrito agregarProducto(String idUsuario, String productoId, Integer cantidad) {
+        if (idUsuario == null || idUsuario.trim().isEmpty()) {
+            throw new IllegalArgumentException("El ID del usuario es requerido");
+        }
+        if (productoId == null || productoId.trim().isEmpty()) {
+            throw new IllegalArgumentException("El ID del producto es requerido");
+        }
+        if (cantidad == null || cantidad <= 0) {
             throw new IllegalArgumentException("La cantidad debe ser mayor a 0");
         }
 
@@ -44,7 +59,7 @@ public class CarritoUseCase {
                 .findFirst()
                 .orElse(null);
 
-        int cantidadTotalDeseada = (itemExistente != null ? itemExistente.getCantidad() : 0) + cantidad;
+        Integer cantidadTotalDeseada = (itemExistente != null ? itemExistente.getCantidad() : 0) + cantidad;
 
         if (producto.getStock() < cantidadTotalDeseada) {
             throw new IllegalStateException("Stock insuficiente. Disponible: " + producto.getStock());
@@ -52,7 +67,7 @@ public class CarritoUseCase {
 
         if (itemExistente != null) {
             itemExistente.setCantidad(cantidadTotalDeseada);
-            itemExistente.setSubtotal(itemExistente.getPrecioUnitario() * cantidadTotalDeseada);
+            itemExistente.setSubtotal(itemExistente.getPrecioUnitario().multiply(BigDecimal.valueOf(cantidadTotalDeseada)));
         } else {
             ProductoCarrito nuevoItem = new ProductoCarrito(
                     UUID.randomUUID().toString(),
@@ -60,7 +75,7 @@ public class CarritoUseCase {
                     producto.getNombre(),
                     producto.getPrecio(),
                     cantidad,
-                    producto.getPrecio() * cantidad
+                    producto.getPrecio().multiply(BigDecimal.valueOf(cantidad))
             );
             carrito.getItems().add(nuevoItem);
         }
@@ -70,6 +85,13 @@ public class CarritoUseCase {
     }
 
     public Carrito eliminarProducto(String idUsuario, String productoId) {
+        if (idUsuario == null || idUsuario.trim().isEmpty()) {
+            throw new IllegalArgumentException("El ID del usuario es requerido");
+        }
+        if (productoId == null || productoId.trim().isEmpty()) {
+            throw new IllegalArgumentException("El ID del producto es requerido");
+        }
+
         Carrito carrito = obtenerCarritoPorUsuario(idUsuario);
         carrito.getItems().removeIf(item -> item.getProductoId().equals(productoId));
         recalcularTotal(carrito);
@@ -77,13 +99,21 @@ public class CarritoUseCase {
     }
 
     public void vaciarCarrito(String idUsuario) {
+        if (idUsuario == null || idUsuario.trim().isEmpty()) {
+            throw new IllegalArgumentException("El ID del usuario es requerido");
+        }
+
         Carrito carrito = obtenerCarritoPorUsuario(idUsuario);
         carrito.getItems().clear();
-        carrito.setTotal(0L);
+        carrito.setTotal(BigDecimal.ZERO);
         carritoGateway.actualizarCarrito(carrito);
     }
 
     public void procesarCompra(String idUsuario) {
+        if (idUsuario == null || idUsuario.trim().isEmpty()) {
+            throw new IllegalArgumentException("El ID del usuario es requerido");
+        }
+
         Carrito carrito = carritoGateway.buscarPorIdUsuario(idUsuario);
         if (carrito == null || carrito.getItems().isEmpty()) {
             throw new IllegalStateException("El carrito está vacío, no se puede procesar la compra");
@@ -108,9 +138,9 @@ public class CarritoUseCase {
     }
 
     private void recalcularTotal(Carrito carrito) {
-        long total = carrito.getItems().stream()
-                .mapToLong(ProductoCarrito::getSubtotal)
-                .sum();
+        BigDecimal total = carrito.getItems().stream()
+                .map(ProductoCarrito::getSubtotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         carrito.setTotal(total);
     }
 }

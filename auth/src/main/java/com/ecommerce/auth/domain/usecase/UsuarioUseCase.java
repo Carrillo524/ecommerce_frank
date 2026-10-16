@@ -5,7 +5,7 @@ import com.ecommerce.auth.domain.model.gateway.EncryptGateway;
 import com.ecommerce.auth.domain.model.gateway.UsuarioGateway;
 import lombok.RequiredArgsConstructor;
 
-import javax.swing.text.StyledEditorKit;
+import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -16,6 +16,10 @@ public class UsuarioUseCase {
     private final EncryptGateway encryptGateway;
 
     public Usuario guardarUsuario(Usuario usuario) {
+        if (usuario != null && usuario.getSaldo() == null) {
+            usuario.setSaldo(BigDecimal.ZERO);
+        }
+
         validarUsuario(usuario);
 
         if (usuarioGateway.buscarPorEmail(usuario.getEmail()) != null) {
@@ -88,7 +92,7 @@ public class UsuarioUseCase {
             throw new IllegalArgumentException("El usuario debe tener 18 años o más");
         }
 
-        if (usuario.getSaldo() < 0) {
+        if (usuario.getSaldo().compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("El saldo no puede ser negativo");
         }
     }
@@ -106,8 +110,8 @@ public class UsuarioUseCase {
 
     }
 
-    public void debitarSaldo(String idUsuario, Long monto) {
-        if (monto == null || monto <= 0) {
+    public void debitarSaldo(String idUsuario, BigDecimal monto) {
+        if (monto == null || monto.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("El monto a debitar debe ser mayor a 0");
         }
 
@@ -116,11 +120,54 @@ public class UsuarioUseCase {
             throw new IllegalArgumentException("Usuario no encontrado con ID: " + idUsuario);
         }
 
-        if (usuario.getSaldo() < monto) {
+        if (usuario.getSaldo().compareTo(monto) < 0) {
             throw new IllegalStateException("Fondos insuficientes: el saldo actual (" + usuario.getSaldo() + ") es menor al monto a debitar (" + monto + ")");
         }
 
-        usuario.setSaldo(usuario.getSaldo() - monto);
-        actualizarUsuario(usuario);
+        BigDecimal nuevoSaldo = usuario.getSaldo().subtract(monto);
+        usuario.setSaldo(nuevoSaldo);
+        usuarioGateway.actualizarSaldo(idUsuario, nuevoSaldo);
+    }
+
+    public void recargarSaldo(String idUsuario, BigDecimal monto) {
+        if (monto == null || monto.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("El monto a recargar debe ser mayor a 0");
+        }
+
+        Usuario usuario = obtenerUsuarioPorId(idUsuario);
+        if (usuario == null) {
+            throw new IllegalArgumentException("Usuario no encontrado con ID: " + idUsuario);
+        }
+
+        BigDecimal nuevoSaldo = usuario.getSaldo().add(monto);
+        usuario.setSaldo(nuevoSaldo);
+        usuarioGateway.actualizarSaldo(idUsuario, nuevoSaldo);
+    }
+
+    public Usuario actualizarSaldo(String idUsuario, BigDecimal montoARecargar) {
+        if (idUsuario == null || idUsuario.isBlank()) {
+            throw new IllegalArgumentException("El ID del usuario no puede ser nulo o vacío");
+        }
+
+        if (montoARecargar == null) {
+            throw new IllegalArgumentException("El monto a recargar no puede ser nulo");
+        }
+
+        if (montoARecargar.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("El monto a recargar debe ser mayor a cero");
+        }
+
+        Usuario usuarioExistente = usuarioGateway.buscarPorId(idUsuario);
+        if (usuarioExistente == null) {
+            throw new IllegalArgumentException("Usuario no encontrado con ID: " + idUsuario);
+        }
+
+        BigDecimal saldoActual = usuarioExistente.getSaldo() != null
+                ? usuarioExistente.getSaldo()
+                : BigDecimal.ZERO;
+
+        BigDecimal saldoFinal = saldoActual.add(montoARecargar);
+
+        return usuarioGateway.actualizarSaldo(idUsuario, saldoFinal);
     }
 }

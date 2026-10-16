@@ -6,6 +6,8 @@ import com.ecommerce.auth.infraestructure.mapper.UsuarioMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
+
 //IMPLEMEMTAR USUARIO GATEWAY
 @Repository
 @RequiredArgsConstructor
@@ -37,5 +39,13 @@ public class JpaUsuarioAdapter implements UsuarioGateway {
     @Override
     public Usuario buscarPorEmail(String email) {
         return repository.findByEmail(email).map(mapper::toUsuario).orElse(null);
+    }
+
+    @Override
+    public Usuario actualizarSaldo(String idUsuario, BigDecimal nuevoSaldo) {
+        return repository.findById(idUsuario).map(usuarioData -> {
+            usuarioData.setSaldo(nuevoSaldo);
+            return mapper.toUsuario(repository.save(usuarioData));
+        }).orElse(null);
     }
 }
