@@ -4,7 +4,7 @@ import com.ecommerce.auth.domain.model.Usuario;
 import com.ecommerce.auth.domain.usecase.UsuarioUseCase;
 import com.ecommerce.auth.infraestructure.driver_adapters.security.RequestLogin;
 import com.ecommerce.auth.infraestructure.driver_adapters.database.UsuarioData;
-import com.ecommerce.auth.infraestructure.entry_points.Dto.RequestSaldo;
+import com.ecommerce.auth.infraestructure.entry_points.Dto.RequestMovimiento;
 import com.ecommerce.auth.infraestructure.mapper.UsuarioMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -69,23 +69,17 @@ public class UsuarioRestController {
         }
     }
 
-    @PatchMapping("/debitar")
-    public ResponseEntity<String> debitarSaldo(@RequestBody RequestSaldo requestSaldo) {
-        try {
-            usuarioUseCase.debitarSaldo(requestSaldo.getIdUsuario(), requestSaldo.getMonto());
-            return ResponseEntity.ok("Saldo debitado exitosamente");
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
-
-    @PatchMapping("/recargar")
-    public ResponseEntity<String> recargarSaldo(@RequestBody RequestSaldo requestSaldo) {
-        try {
-            usuarioUseCase.recargarSaldo(requestSaldo.getIdUsuario(), requestSaldo.getMonto());
-            return ResponseEntity.ok("Saldo recargado exitosamente");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+    @PostMapping("/movimientos")
+    public ResponseEntity<Usuario> registrarMovimiento(@RequestBody RequestMovimiento request) {
+        String tipo = request.getTipo();
+        if ("RECARGA".equalsIgnoreCase(tipo)) {
+            Usuario resultado = usuarioUseCase.recargarSaldo(request.getIdUsuario(), request.getMonto());
+            return ResponseEntity.ok(resultado);
+        } else if ("DEBITO".equalsIgnoreCase(tipo)) {
+            Usuario resultado = usuarioUseCase.debitarSaldo(request.getIdUsuario(), request.getMonto());
+            return ResponseEntity.ok(resultado);
+        } else {
+            throw new IllegalArgumentException("Tipo de movimiento inválido: " + tipo + ". Debe ser RECARGA o DEBITO.");
         }
     }
 }

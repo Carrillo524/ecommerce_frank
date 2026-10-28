@@ -41,7 +41,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalStateException(IllegalStateException ex) {
-        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+        String message = ex.getMessage() != null ? ex.getMessage() : "";
+        String lowerCaseMessage = message.toLowerCase();
+        HttpStatus status = (lowerCaseMessage.contains("ya tiene un carrito") || lowerCaseMessage.contains("conflicto"))
+                ? HttpStatus.CONFLICT
+                : HttpStatus.BAD_REQUEST;
+        return buildResponse(status, ex.getMessage());
     }
 
     @ExceptionHandler(RetryableException.class)
@@ -68,6 +73,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Map<String, Object>> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+        log.warn("Cuerpo de la petición inválido o malformado: {}", ex.getMessage());
         return buildResponse(HttpStatus.BAD_REQUEST, "Cuerpo de la petición inválido o malformado");
     }
 

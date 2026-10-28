@@ -50,6 +50,9 @@ public class ProductoUseCase {
         if (producto.getPrecio() == null || producto.getPrecio().compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("El precio debe ser mayor a 0");
         }
+        if (producto.getPrecio().precision() > 38 || (producto.getPrecio().precision() - producto.getPrecio().scale()) > 36) {
+            throw new IllegalArgumentException("El precio supera el límite numérico permitido (máximo 38 dígitos de precisión)");
+        }
         if (producto.getStock() == null || producto.getStock() <= 0) {
             throw new IllegalArgumentException("El stock no puede ser cero, negativo o nulo");
         }

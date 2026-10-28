@@ -110,10 +110,8 @@ public class UsuarioUseCase {
 
     }
 
-    public void debitarSaldo(String idUsuario, BigDecimal monto) {
-        if (monto == null || monto.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("El monto a debitar no puede ser menor a 0 o está ingresando un valor nulo");
-        }
+    public Usuario debitarSaldo(String idUsuario, BigDecimal monto) {
+        validarMonto(monto);
 
         Usuario usuario = obtenerUsuarioPorId(idUsuario);
         if (usuario == null) {
@@ -126,13 +124,14 @@ public class UsuarioUseCase {
 
         BigDecimal nuevoSaldo = usuario.getSaldo().subtract(monto);
         usuario.setSaldo(nuevoSaldo);
-        usuarioGateway.actualizarSaldo(idUsuario, nuevoSaldo);
+        Usuario actualizado = usuarioGateway.actualizarSaldo(idUsuario, nuevoSaldo);
+        return actualizado != null ? actualizado : usuario;
     }
 
-    public void recargarSaldo(String idUsuario, BigDecimal monto) {
-        if (monto == null || monto.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("El monto a recargar no puede ser menor a 0 o está ingresando un valor nulo");
-        }
+
+    public Usuario recargarSaldo(String idUsuario, BigDecimal monto) {
+        validarMonto(monto);
+
 
         Usuario usuario = obtenerUsuarioPorId(idUsuario);
         if (usuario == null) {
@@ -141,7 +140,17 @@ public class UsuarioUseCase {
 
         BigDecimal nuevoSaldo = usuario.getSaldo().add(monto);
         usuario.setSaldo(nuevoSaldo);
-        usuarioGateway.actualizarSaldo(idUsuario, nuevoSaldo);
+        Usuario actualizado = usuarioGateway.actualizarSaldo(idUsuario, nuevoSaldo);
+        return actualizado != null ? actualizado : usuario;
+    }
+
+    private void validarMonto(BigDecimal monto) {
+        if (monto == null || monto.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("El monto no puede ser menor o igual a 0 o nulo");
+        }
+        if (monto.precision() > 38 || (monto.precision() - monto.scale()) > 36) {
+            throw new IllegalArgumentException("El monto supera el límite numérico permitido (máximo 38 dígitos)");
+        }
     }
 
 

@@ -19,19 +19,32 @@ public class CarritoUseCase {
     private final ProductoGateway productoGateway;
     private final UsuarioAuthGateway usuarioAuthGateway;
 
-    public Carrito obtenerCarritoPorUsuario(String idUsuario) {
-        if (idUsuario == null || idUsuario.trim().isEmpty()) {
+    public Carrito crearCarrito(String usuarioId) {
+        if (usuarioId == null || usuarioId.trim().isEmpty()) {
             throw new IllegalArgumentException("El ID del usuario es requerido");
         }
 
-        if (!usuarioAuthGateway.existeUsuario(idUsuario)) {
+        Carrito carritoExistente = carritoGateway.buscarPorIdUsuario(usuarioId);
+        if (carritoExistente != null) {
+            throw new IllegalStateException("Este usuario ya tiene un carrito asignado");
+        }
+
+        if (!usuarioAuthGateway.existeUsuario(usuarioId)) {
             throw new IllegalArgumentException("El usuario no existe en el sistema");
         }
 
-        Carrito carrito = carritoGateway.buscarPorIdUsuario(idUsuario);
+        Carrito nuevoCarrito = new Carrito(UUID.randomUUID().toString(), usuarioId, new ArrayList<>(), BigDecimal.ZERO);
+        return carritoGateway.guardarCarrito(nuevoCarrito);
+    }
+
+    public Carrito obtenerCarritoPorUsuario(String usuarioId) {
+        if (usuarioId == null || usuarioId.trim().isEmpty()) {
+            throw new IllegalArgumentException("El ID del usuario es requerido");
+        }
+
+        Carrito carrito = carritoGateway.buscarPorIdUsuario(usuarioId);
         if (carrito == null) {
-            carrito = new Carrito(UUID.randomUUID().toString(), idUsuario, new ArrayList<>(), BigDecimal.ZERO);
-            carrito = carritoGateway.guardarCarrito(carrito);
+            throw new IllegalArgumentException("No se encontró un carrito activo para el usuario con ID: " + usuarioId);
         }
         return carrito;
     }

@@ -8,6 +8,8 @@ import com.ecommerce.catalogo.infraestructure.entry_points.dto.UsuarioIdRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,8 +23,15 @@ public class CarritoRestController {
     private final CarritoUseCase carritoUseCase;
 
     @PostMapping("/crearcarro")
-    public ResponseEntity<Carrito> obtenerCarritoPorUsuario(@RequestBody UsuarioIdRequest request) {
-        Carrito carrito = carritoUseCase.obtenerCarritoPorUsuario(request != null ? request.getUsuarioId() : null);
+    public ResponseEntity<Carrito> crearCarrito(@RequestBody UsuarioIdRequest request) {
+        String usuarioId = request != null ? request.getUsuarioId() : null;
+        Carrito nuevoCarrito = carritoUseCase.crearCarrito(usuarioId);
+        return ResponseEntity.ok(nuevoCarrito);
+    }
+
+    @GetMapping("/buscarcarro/{usuarioId}")
+    public ResponseEntity<Carrito> consultarCarrito(@PathVariable String usuarioId) {
+        Carrito carrito = carritoUseCase.obtenerCarritoPorUsuario(usuarioId);
         return ResponseEntity.ok(carrito);
     }
 
@@ -36,12 +45,11 @@ public class CarritoRestController {
         return ResponseEntity.ok(carritoActualizado);
     }
 
-    @DeleteMapping("/quitarproducto")
-    public ResponseEntity<Carrito> eliminarProducto(@RequestBody EliminarItemRequest request) {
-        Carrito carritoActualizado = carritoUseCase.eliminarProducto(
-                request.getUsuarioId(),
-                request.getProductoId()
-        );
+    @DeleteMapping("/{usuarioId}/productos/{productoId}")
+    public ResponseEntity<Carrito> eliminarProducto(
+            @PathVariable String usuarioId,
+            @PathVariable String productoId) {
+        Carrito carritoActualizado = carritoUseCase.eliminarProducto(usuarioId, productoId);
         return ResponseEntity.ok(carritoActualizado);
     }
 

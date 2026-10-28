@@ -11,7 +11,8 @@ import java.math.BigDecimal;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class DebitarSaldoRequest {
+public class RequestMovimiento {
     private String idUsuario;
+    private String tipo;
     private BigDecimal monto;
 }
